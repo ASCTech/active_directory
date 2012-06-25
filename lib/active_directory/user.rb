@@ -68,15 +68,16 @@ module ActiveDirectory
 			User.find_by_distinguishedName(@entry.manager.to_s)
 		end
 
-		#
-		# Returns an array of Group objects that this User belongs to.
-		# Only the immediate parent groups are returned, so if the user
-		# Sally is in a group called Sales, and Sales is in a group
-		# called Marketting, this method would only return the Sales group.
-		#
-		def groups
-			@groups ||= Group.find(:all, :distinguishedname => @entry.memberOf)
-		end
+    #
+    # Returns an array of Group objects that this User belongs to.
+    # Only the immediate parent groups are returned, so if the user
+    # Sally is in a group called Sales, and Sales is in a group
+    # called Marketting, this method would only return the Sales group.
+    #
+    def groups(options={})
+      @groups ||= {}
+      @groups[options] ||= Group.find(:all, {:distinguishedname => @entry.memberOf}, options)
+    end
 
 		#
 		# Returns an array of User objects that have this
@@ -122,7 +123,7 @@ module ActiveDirectory
             now = FieldType::Timestamp.encode(Time.now)
             (password_expires_at < now)
         end
-    
+
         #
 		# Change the password for this account.
 		#
@@ -158,7 +159,7 @@ module ActiveDirectory
 		def unlock!
 			@@ldap.replace_attribute(distinguishedName, :lockoutTime, ['0'])
 		end
-		
+
 		#
 		# Locks this account.
 		#
