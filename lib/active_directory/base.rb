@@ -264,7 +264,6 @@ module ActiveDirectory
             return cached_results if cached_results or cached_results.nil?
 
             options[:in] << ",#{@@settings[:base]}" unless options[:in].downcase.end_with?(@@settings[:base])
-pp options[:in]
 
             if options[:filter].is_a? Hash
               options[:filter] = make_filter_from_hash(options[:filter])
