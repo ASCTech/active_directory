@@ -244,7 +244,7 @@ module ActiveDirectory
 
             options[:filter]     = given_filter.blank? ? NIL_FILTER : given_filter
             options[:attributes] = Array.new
-            options[:in]       ||= ''
+            options[:in]       ||= @@settings[:base].downcase
             options[:scope]    ||= Net::LDAP::SearchScope_WholeSubtree
 
             if options[:filter].is_a? Hash
@@ -263,7 +263,8 @@ module ActiveDirectory
             cached_results = find_cached_results(given_filter)
             return cached_results if cached_results or cached_results.nil?
 
-            options[:in] = [ options[:in].to_s, @@settings[:base] ].delete_if { |part| part.empty? }.join(",")
+            options[:in] << ",#{@@settings[:base]}" unless options[:in].downcase.end_with?(@@settings[:base])
+pp options[:in]
 
             if options[:filter].is_a? Hash
               options[:filter] = make_filter_from_hash(options[:filter])

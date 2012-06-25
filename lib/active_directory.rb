@@ -24,6 +24,7 @@ require 'active_directory/base.rb'
 require 'active_directory/container.rb'
 require 'active_directory/member.rb'
 
+require 'active_directory/ou.rb'
 require 'active_directory/user.rb'
 require 'active_directory/group.rb'
 require 'active_directory/computer.rb'
@@ -38,7 +39,7 @@ require 'active_directory/field_type/group_dn_array.rb'
 require 'active_directory/field_type/member_dn_array.rb'
 
 module ActiveDirectory
-  
+
   #Special Fields
   def self.special_fields
     @@special_fields
@@ -52,6 +53,13 @@ module ActiveDirectory
 
     #All objects in the AD
     :Base => {
+      :objectguid => :Binary,
+      :whencreated => :Date,
+      :whenchanged => :Date,
+      :memberof => :DnArray,
+    },
+
+    :OU => {
       :objectguid => :Binary,
       :whencreated => :Date,
       :whenchanged => :Date,
