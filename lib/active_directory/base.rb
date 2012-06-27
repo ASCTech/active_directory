@@ -77,6 +77,16 @@ module ActiveDirectory
             @@ldap = Net::LDAP.new(settings)
         end
 
+        def self.encrypted_connection
+          encrypted_settings = {:port => 636, :encryption => {:method => :simple_tls}}
+
+          if @@settings[:port] == encrypted_settings[:port] && @@settings[:encryption] == encrypted_settings[:encryption]
+            @@ldap
+          else
+            @@encrypted_connection ||= Net::LDAP.new(@@settings.merge(encrypted_settings))
+          end
+        end
+
         def self.error
             "#{@@ldap.get_operation_result.code}: #{@@ldap.get_operation_result.message}"
         end
@@ -481,26 +491,18 @@ module ActiveDirectory
         end
 
         #
-        # This method may one day provide the ability to move entries from
-        # container to container. Currently, it does nothing, as we are
-        # waiting on the Net::LDAP folks to either document the
-        # Net::LDAP#modrdn method, or provide a similar method for
-        # moving / renaming LDAP entries.
+        # Changes the RDN of the object.
+        #
+        # optionally specify whether to delete the old RDN.
         #
         def rename(new_rdn, options={})
             # manual reverse_merge
             options = {:delete_old_rdn => true}.merge(options)
 
             return false if new_record?
-            puts "Moving #{distinguishedName} to RDN: #{new_rdn}"
+            puts "Renaming #{distinguishedName} to RDN: #{new_rdn}"
 
-            settings = @@settings.dup
-            settings[:port] = 636
-            settings[:encryption] = { :method => :simple_tls }
-
-            ldap = Net::LDAP.new(settings)
-
-            if ldap.rename(
+            if self.class.encrypted_connection.rename(
                 :olddn => distinguishedName,
                 :newrdn => new_rdn,
                 :delete_attributes => options[:delete_old_rdn]
