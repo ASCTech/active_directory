@@ -487,7 +487,10 @@ module ActiveDirectory
         # Net::LDAP#modrdn method, or provide a similar method for
         # moving / renaming LDAP entries.
         #
-        def move(new_rdn)
+        def rename(new_rdn, options={})
+            # manual reverse_merge
+            options = {:delete_old_rdn => true}.merge(options)
+
             return false if new_record?
             puts "Moving #{distinguishedName} to RDN: #{new_rdn}"
 
@@ -500,7 +503,7 @@ module ActiveDirectory
             if ldap.rename(
                 :olddn => distinguishedName,
                 :newrdn => new_rdn,
-                :delete_attributes => false
+                :delete_attributes => options[:delete_old_rdn]
             )
                 return true
             else

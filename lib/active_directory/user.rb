@@ -68,6 +68,10 @@ module ActiveDirectory
 			User.find_by_distinguishedName(@entry.manager.to_s)
 		end
 
+    def rename(new_cn)
+      super("cn=#{new_cn}")
+    end
+
     #
     # Returns an array of Group objects that this User belongs to.
     # Only the immediate parent groups are returned, so if the user
