@@ -496,22 +496,38 @@ module ActiveDirectory
         # optionally specify whether to delete the old RDN.
         #
         def rename(new_rdn, options={})
-            # manual reverse_merge
-            options = {:delete_old_rdn => true}.merge(options)
+          puts "Renaming #{distinguishedName} to RDN: #{new_rdn}"
+          mod_dn(options.merge(:newrdn => new_rdn))
+        end
 
-            return false if new_record?
-            puts "Renaming #{distinguishedName} to RDN: #{new_rdn}"
+        #
+        # Moves the object to a new superior, while keeping the RDN the same.
+        #
+        # optionally specify whether to delete the old RDN.
+        #
+        def move(new_superior, options={})
+          puts "Moving #{distinguishedName} to new superior: #{new_superior}"
+          mod_dn(options.merge(:new_superior => new_superior))
+        end
 
-            if self.class.encrypted_connection.rename(
-                :olddn => distinguishedName,
-                :newrdn => new_rdn,
-                :delete_attributes => options[:delete_old_rdn]
-            )
-                return true
-            else
-                puts Base.error
-                return false
-            end
+        def mod_dn(options)
+          return false if new_record?
+
+          # manual reverse_merge
+          options = {:delete_attributes => true, :olddn => distinguishedName, :newrdn => rdn}.merge(options)
+
+          if self.class.encrypted_connection.rename(options)
+            return true
+          else
+            puts Base.error
+            return false
+          end
+        end
+        private :mod_dn
+
+        def rdn
+          start, mid = distinguishedName.split('=', 3)
+          [start, mid.split(/,/)[0..-2].join(',')].join('=')
         end
 
         # FIXME: Need to document the Base::new
